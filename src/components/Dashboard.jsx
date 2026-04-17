@@ -14,7 +14,7 @@ export default function Dashboard({progress, chUnlocked, testUnlocked, onChapter
       <div style={{background:'#1e293b',borderBottom:'1px solid #334155',padding:'12px 24px',display:'flex',alignItems:'center',justifyContent:'space-between',position:'sticky',top:0,zIndex:10}}>
         <div style={{fontSize:16,fontWeight:700,color:'#38bdf8'}}>NSPIRE Academy</div>
         <div style={{display:'flex',alignItems:'center',gap:12}}>
-          {progress.streak > 0 && <div style={{fontSize:12,color:'#fb923c',fontWeight:700,background:'#431407',padding:'4px 10px',borderRadius:20}}>🔥 {progress.streak} day streak</div>}
+         
           <div style={{fontSize:12,color:'#475569'}}>{userEmail}</div>
           <button onClick={onSignOut} style={{background:'transparent',border:'1px solid #334155',color:'#64748b',padding:'5px 12px',borderRadius:7,fontSize:12,cursor:'pointer'}}>Sign out</button>
         </div>
