@@ -130,22 +130,8 @@ export default function App() {
     setView('dashboard')
   }
 
-  function chUnlocked(chId) {
-    const ch = CHAPTERS.find(c=>c.id===chId)
-    const unit = UNITS.find(u=>u.id===ch.unit)
-    const idx = unit.chapters.indexOf(chId)
-    if (idx===0) {
-      const uIdx = UNITS.findIndex(u=>u.id===unit.id)
-      if (uIdx===0) return true
-      return !!progress.testScores[UNITS[uIdx-1].id]
-    }
-    return !!progress.chaptersComplete[unit.chapters[idx-1]]
-  }
-
-  function testUnlocked(unitId) {
-    const unit = UNITS.find(u=>u.id===unitId)
-    return unit.chapters.every(cId => progress.chaptersComplete[cId] && progress.quizScores[cId]!==undefined)
-  }
+  function chUnlocked(chId) { return true }
+  function testUnlocked(unitId) { return true }
 
   if (authLoading) return (
     <div style={{minHeight:'100vh',background:'#0f172a',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Inter',sans-serif",color:'#64748b',fontSize:14}}>
