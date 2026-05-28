@@ -1,18 +1,26 @@
-import { ALL_UNITS_FINAL as ALLUNITS, ALL_CHAPTERS_V2 as CHAPTERS, ALL_TESTS_FINAL as UNIT_TESTS } from '../data/content.js'
+import { ALL_CHAPTERS_V2 as CHAPTERS, ALL_TESTS_FINAL as UNIT_TESTS } from '../data/content.js'
+import { getAcademy } from '../data/academies.js'
 
 
-export default function Dashboard({progress, chUnlocked, testUnlocked, onChapter, onQuiz, onTest, onReset, onSignOut, userEmail}) {
-  const UNITLIST = ALLUNITS
-  const totalChs = CHAPTERS.length
-  const doneChs = Object.values(progress.chaptersComplete).filter(Boolean).length
-  const doneQuizzes = Object.keys(progress.quizScores).length
-  const avgScore = doneQuizzes > 0 ? Math.round(Object.values(progress.quizScores).reduce((a,b)=>a+b,0)/doneQuizzes) : 0
-  const overallPct = Math.round(((doneChs + doneQuizzes) / (totalChs * 2)) * 100)
+export default function Dashboard({academy, progress, chUnlocked, testUnlocked, onChapter, onQuiz, onTest, onReset, onSignOut, onSwitchAcademy, userEmail}) {
+  const ac = getAcademy(academy)
+  const UNITLIST = ac.units
+  const academyChIds = UNITLIST.flatMap(u => u.chapters)
+  const academyChIdSet = new Set(academyChIds)
+  const totalChs = academyChIds.length
+  const doneChs = academyChIds.filter(id => progress.chaptersComplete[id]).length
+  const academyQuizIds = Object.keys(progress.quizScores).filter(id => academyChIdSet.has(id))
+  const doneQuizzes = academyQuizIds.length
+  const avgScore = doneQuizzes > 0 ? Math.round(academyQuizIds.reduce((a,id)=>a+progress.quizScores[id],0)/doneQuizzes) : 0
+  const overallPct = totalChs > 0 ? Math.round(((doneChs + doneQuizzes) / (totalChs * 2)) * 100) : 0
 
   return (
     <div style={{minHeight:'100vh',background:'#0f172a',color:'#f1f5f9',fontFamily:"'Inter',system-ui,sans-serif"}}>
       <div style={{background:'#1e293b',borderBottom:'1px solid #334155',padding:'12px 24px',display:'flex',alignItems:'center',justifyContent:'space-between',position:'sticky',top:0,zIndex:10}}>
-        <div style={{fontSize:16,fontWeight:700,color:'#38bdf8'}}>NSPIRE Academy</div>
+        <div style={{display:'flex',alignItems:'center',gap:14}}>
+          <button onClick={onSwitchAcademy} style={{background:'transparent',border:'1px solid #334155',color:'#64748b',padding:'5px 10px',borderRadius:7,fontSize:12,cursor:'pointer'}}>← Academies</button>
+          <div style={{fontSize:16,fontWeight:700,color:ac.accent}}>{ac.name}</div>
+        </div>
         <div style={{display:'flex',alignItems:'center',gap:12}}>
          
           <div style={{fontSize:12,color:'#475569'}}>{userEmail}</div>
@@ -22,10 +30,10 @@ export default function Dashboard({progress, chUnlocked, testUnlocked, onChapter
 
       <div style={{maxWidth:860,margin:'0 auto',padding:'28px 20px'}}>
         <div style={{fontSize:22,fontWeight:700,marginBottom:4}}>Welcome back</div>
-        <div style={{fontSize:14,color:'#64748b',marginBottom:28}}>Your NSPIRE pre-inspection business training</div>
+        <div style={{fontSize:14,color:'#64748b',marginBottom:28}}>{ac.tagline}</div>
 
         <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10,marginBottom:28}}>
-          {[['Overall progress',overallPct+'%','#38bdf8'],['Chapters read',`${doneChs}/${totalChs}`,'#4ade80'],['Avg quiz score',avgScore>0?avgScore+'%':'—','#fb923c']].map(([l,n,c])=>(
+          {[['Overall progress',overallPct+'%',ac.accent],['Chapters read',`${doneChs}/${totalChs}`,'#4ade80'],['Avg quiz score',avgScore>0?avgScore+'%':'—','#fb923c']].map(([l,n,c])=>(
             <div key={l} style={{background:'#1e293b',borderRadius:10,border:'1px solid #334155',padding:14,textAlign:'center'}}>
               <div style={{fontSize:24,fontWeight:700,color:c,marginBottom:3}}>{n}</div>
               <div style={{fontSize:11,color:'#64748b'}}>{l}</div>
