@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from './lib/supabase.js'
 import { ALL_UNITS_FINAL as UNITS, ALL_CHAPTERS_V2 as CHAPTERS } from './data/content.js'
 import Auth from './components/Auth.jsx'
+import Launcher from './components/Launcher.jsx'
 import Dashboard from './components/Dashboard.jsx'
 import ChapterReader from './components/ChapterReader.jsx'
 import Quiz from './components/Quiz.jsx'
@@ -12,7 +13,8 @@ const def = () => ({ sectionsRead:{}, chaptersComplete:{}, quizScores:{}, testSc
 export default function App() {
   const [session, setSession] = useState(null)
   const [authLoading, setAuthLoading] = useState(true)
-  const [view, setView] = useState('dashboard')
+  const [view, setView] = useState('launcher')
+  const [academy, setAcademy] = useState(null)
   const [activeChId, setActiveChId] = useState(null)
   const [activeUnitId, setActiveUnitId] = useState(null)
   const [progress, setProgress] = useState(def())
@@ -127,7 +129,8 @@ export default function App() {
   async function signOut() {
     await supabase.auth.signOut()
     setProgress(def())
-    setView('dashboard')
+    setAcademy(null)
+    setView('launcher')
   }
 
   function chUnlocked(chId) { return true }
@@ -148,12 +151,17 @@ export default function App() {
           Saving...
         </div>
       )}
-      {view==='dashboard' && <Dashboard progress={progress} chUnlocked={chUnlocked} testUnlocked={testUnlocked}
+      {view==='launcher' && <Launcher progress={progress}
+        onSelect={id=>{setAcademy(id);setView('dashboard')}}
+        onSignOut={signOut}
+        userEmail={session.user.email} />}
+      {view==='dashboard' && academy && <Dashboard academy={academy} progress={progress} chUnlocked={chUnlocked} testUnlocked={testUnlocked}
         onChapter={id=>{setActiveChId(id);setView('chapter')}}
         onQuiz={id=>{setActiveChId(id);setView('quiz')}}
         onTest={id=>{setActiveUnitId(id);setView('test')}}
         onReset={resetProgress}
         onSignOut={signOut}
+        onSwitchAcademy={()=>{setAcademy(null);setView('launcher')}}
         userEmail={session.user.email} />}
       {view==='chapter' && <ChapterReader chId={activeChId} progress={progress} onMark={markSection}
         onQuiz={()=>setView('quiz')} onBack={()=>setView('dashboard')} />}
