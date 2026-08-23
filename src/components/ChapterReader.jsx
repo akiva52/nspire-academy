@@ -1,5 +1,11 @@
 import { useState } from 'react'
 import { ALL_CHAPTERS_V2 as CHAPTERS, ALL_UNITS_FINAL as UNITS } from '../data/content.js'
+import { OCCUPANCY_CHAPTERS } from '../data/occupancy_content.js'
+import CitationText from './CitationText.jsx'
+
+// Citation linking is live for the HUD Occupancy Academy only in this pass.
+// MOR and NSPIRE get the same treatment once the pattern is confirmed.
+const CITED_CHAPTER_IDS = new Set(OCCUPANCY_CHAPTERS.map(c => c.id))
 
 export default function ChapterReader({chId, progress, onMark, onQuiz, onBack}) {
   const chapter = CHAPTERS.find(c=>c.id===chId)
@@ -62,7 +68,9 @@ export default function ChapterReader({chId, progress, onMark, onQuiz, onBack}) 
               <div style={{width:8,height:8,borderRadius:'50%',background:'#38bdf8'}}/>
               <div style={{fontSize:14,fontWeight:700,color:'#38bdf8'}}>{section.heading}</div>
             </div>
-            <div style={{fontSize:14,color:'#94a3b8',lineHeight:1.85,whiteSpace:'pre-line'}}>{section.body}</div>
+            {CITED_CHAPTER_IDS.has(chId)
+              ? <CitationText text={section.body} style={{fontSize:14,color:'#94a3b8',lineHeight:1.85,whiteSpace:'pre-line'}}/>
+              : <div style={{fontSize:14,color:'#94a3b8',lineHeight:1.85,whiteSpace:'pre-line'}}>{section.body}</div>}
           </div>
 
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',paddingTop:16,borderTop:'1px solid #1e293b'}}>
