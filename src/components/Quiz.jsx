@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { ALL_CHAPTERS_V2 as CHAPTERS, ALL_QUIZZES_FINAL as CHAPTER_QUIZZES } from '../data/content.js'
+import { RecallAttempt, RecallRecap } from './Retrieval.jsx'
 
-export default function Quiz({chId, existing, onDone, onBack}) {
+export default function Quiz({chId, existing, accent='#38bdf8', onDone, onBack}) {
   const chapter = CHAPTERS.find(c=>c.id===chId)
   const quiz = CHAPTER_QUIZZES[chId]
   const [qi, setQi] = useState(0)
@@ -9,6 +10,14 @@ export default function Quiz({chId, existing, onDone, onBack}) {
   const [answered, setAnswered] = useState(false)
   const [chosen, setChosen] = useState(null)
   const [done, setDone] = useState(false)
+  // Retrieval practice (Feature A): the choices stay hidden until `revealed`.
+  // `attempt` is ephemeral — cleared on every question and never persisted.
+  // `recallOff` lets the reader switch the step off for the rest of this quiz.
+  const [revealed, setRevealed] = useState(false)
+  const [attempt, setAttempt] = useState('')
+  const [recallOff, setRecallOff] = useState(false)
+
+  const showRecall = !recallOff && !revealed
 
   function answer(i) {
     if (answered) return
@@ -19,14 +28,18 @@ export default function Quiz({chId, existing, onDone, onBack}) {
 
   function next() {
     if (qi < quiz.questions.length - 1) {
-      setQi(q=>q+1); setAnswered(false); setChosen(null)
+      setQi(q=>q+1); setAnswered(false); setChosen(null); setRevealed(false); setAttempt('')
     } else {
       setDone(true)
     }
   }
 
+  function retake() {
+    setQi(0); setScore(0); setAnswered(false); setChosen(null); setDone(false)
+    setRevealed(false); setAttempt(''); setRecallOff(false)
+  }
+
   const q = quiz.questions[qi]
-  const pct = Math.round((score / quiz.questions.length) * 100)
   const finalPct = Math.round((score / quiz.questions.length) * 100)
 
   return (
@@ -43,44 +56,58 @@ export default function Quiz({chId, existing, onDone, onBack}) {
             <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:24}}>
               <div style={{fontSize:12,color:'#64748b',whiteSpace:'nowrap'}}>Q{qi+1} of {quiz.questions.length}</div>
               <div style={{flex:1,height:5,background:'#1e293b',borderRadius:99,overflow:'hidden'}}>
-                <div style={{height:'100%',background:'#38bdf8',borderRadius:99,width:((qi+1)/quiz.questions.length*100)+'%'}}/>
+                <div style={{height:'100%',background:accent,borderRadius:99,width:((qi+1)/quiz.questions.length*100)+'%'}}/>
               </div>
             </div>
 
             <div style={{background:'#1e293b',borderRadius:12,border:'1px solid #334155',padding:24,marginBottom:16}}>
-              <div style={{fontSize:11,fontWeight:700,color:'#38bdf8',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:12}}>Chapter {chapter.number} — {chapter.title}</div>
+              <div style={{fontSize:11,fontWeight:700,color:accent,textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:12}}>Chapter {chapter.number} — {chapter.title}</div>
               <div style={{fontSize:16,fontWeight:600,lineHeight:1.55,color:'#f1f5f9'}}>{q.q}</div>
             </div>
 
-            {q.opts.map((opt,i)=>{
-              let bg='#1e293b', color='#f1f5f9', border='1px solid #334155'
-              if (answered) {
-                if (i===q.ans) { bg='#14532d'; color='#86efac'; border='1px solid #4ade80' }
-                else if (i===chosen && chosen!==q.ans) { bg='#450a0a'; color='#fca5a5'; border='1px solid #f87171' }
-              }
-              return (
-                <div key={i} onClick={()=>answer(i)}
-                  style={{display:'flex',alignItems:'center',gap:12,padding:'12px 16px',borderRadius:10,border,background:bg,marginBottom:8,cursor:answered?'default':'pointer',transition:'all 0.15s'}}>
-                  <div style={{width:28,height:28,borderRadius:7,background:answered&&i===q.ans?'#4ade80':answered&&i===chosen?'#f87171':'#334155',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700,color:answered&&(i===q.ans||i===chosen)?'#0f172a':'#94a3b8',flexShrink:0}}>
-                    {String.fromCharCode(65+i)}
+            {showRecall ? (
+              <RecallAttempt
+                accent={accent}
+                attempt={attempt}
+                onAttemptChange={setAttempt}
+                onReveal={kept=>{ setAttempt(kept); setRevealed(true) }}
+                onDisable={()=>{ setAttempt(''); setRecallOff(true); setRevealed(true) }}
+              />
+            ) : (
+              <>
+                <RecallRecap accent={accent} attempt={attempt}/>
+
+                {q.opts.map((opt,i)=>{
+                  let bg='#1e293b', color='#f1f5f9', border='1px solid #334155'
+                  if (answered) {
+                    if (i===q.ans) { bg='#14532d'; color='#86efac'; border='1px solid #4ade80' }
+                    else if (i===chosen && chosen!==q.ans) { bg='#450a0a'; color='#fca5a5'; border='1px solid #f87171' }
+                  }
+                  return (
+                    <div key={i} onClick={()=>answer(i)}
+                      style={{display:'flex',alignItems:'center',gap:12,padding:'12px 16px',borderRadius:10,border,background:bg,marginBottom:8,cursor:answered?'default':'pointer',transition:'all 0.15s'}}>
+                      <div style={{width:28,height:28,borderRadius:7,background:answered&&i===q.ans?'#4ade80':answered&&i===chosen?'#f87171':'#334155',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700,color:answered&&(i===q.ans||i===chosen)?'#0f172a':'#94a3b8',flexShrink:0}}>
+                        {String.fromCharCode(65+i)}
+                      </div>
+                      <div style={{fontSize:14,color,lineHeight:1.4}}>{opt}</div>
+                    </div>
+                  )
+                })}
+
+                {answered && (
+                  <div style={{background:chosen===q.ans?'#14532d':'#450a0a',border:`1px solid ${chosen===q.ans?'#4ade80':'#f87171'}`,borderRadius:10,padding:'14px 16px',marginTop:4,marginBottom:16}}>
+                    <div style={{fontSize:11,fontWeight:700,color:chosen===q.ans?'#4ade80':'#f87171',textTransform:'uppercase',marginBottom:6}}>{chosen===q.ans?'Correct!':'Not quite'}</div>
+                    <div style={{fontSize:13,color:chosen===q.ans?'#86efac':'#fca5a5',lineHeight:1.6}}>{q.exp}</div>
                   </div>
-                  <div style={{fontSize:14,color,lineHeight:1.4}}>{opt}</div>
-                </div>
-              )
-            })}
+                )}
 
-            {answered && (
-              <div style={{background:chosen===q.ans?'#14532d':'#450a0a',border:`1px solid ${chosen===q.ans?'#4ade80':'#f87171'}`,borderRadius:10,padding:'14px 16px',marginTop:4,marginBottom:16}}>
-                <div style={{fontSize:11,fontWeight:700,color:chosen===q.ans?'#4ade80':'#f87171',textTransform:'uppercase',marginBottom:6}}>{chosen===q.ans?'Correct!':'Not quite'}</div>
-                <div style={{fontSize:13,color:chosen===q.ans?'#86efac':'#fca5a5',lineHeight:1.6}}>{q.exp}</div>
-              </div>
-            )}
-
-            {answered && (
-              <button onClick={next}
-                style={{width:'100%',background:'#38bdf8',color:'#0f172a',border:'none',padding:'13px',borderRadius:10,fontSize:14,fontWeight:700,cursor:'pointer',marginTop:4}}>
-                {qi < quiz.questions.length-1 ? 'Next question →' : 'See results →'}
-              </button>
+                {answered && (
+                  <button onClick={next}
+                    style={{width:'100%',background:accent,color:'#0f172a',border:'none',padding:'13px',borderRadius:10,fontSize:14,fontWeight:700,cursor:'pointer',marginTop:4}}>
+                    {qi < quiz.questions.length-1 ? 'Next question →' : 'See results →'}
+                  </button>
+                )}
+              </>
             )}
           </>
         ) : (
@@ -94,12 +121,12 @@ export default function Quiz({chId, existing, onDone, onBack}) {
               </div>
             )}
             <div style={{display:'flex',gap:12,justifyContent:'center'}}>
-              <button onClick={()=>{setQi(0);setScore(0);setAnswered(false);setChosen(null);setDone(false)}}
+              <button onClick={retake}
                 style={{background:'#1e293b',color:'#94a3b8',border:'1px solid #334155',padding:'11px 24px',borderRadius:9,fontSize:13,fontWeight:600,cursor:'pointer'}}>
                 Retake quiz
               </button>
               <button onClick={()=>onDone(finalPct)}
-                style={{background:'#38bdf8',color:'#0f172a',border:'none',padding:'11px 24px',borderRadius:9,fontSize:13,fontWeight:700,cursor:'pointer'}}>
+                style={{background:accent,color:'#0f172a',border:'none',padding:'11px 24px',borderRadius:9,fontSize:13,fontWeight:700,cursor:'pointer'}}>
                 Back to dashboard →
               </button>
             </div>

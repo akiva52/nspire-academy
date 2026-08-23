@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from './lib/supabase.js'
 import { ALL_UNITS_FINAL as UNITS, ALL_CHAPTERS_V2 as CHAPTERS } from './data/content.js'
+import { getAcademy } from './data/academies.js'
 import Auth from './components/Auth.jsx'
 import Launcher from './components/Launcher.jsx'
 import Dashboard from './components/Dashboard.jsx'
@@ -133,6 +134,10 @@ export default function App() {
     setView('launcher')
   }
 
+  // Accent for the reader/quiz chrome and the retrieval-practice prompts, so
+  // both follow the academy the reader is actually in.
+  const accent = academy ? getAcademy(academy).accent : '#38bdf8'
+
   function chUnlocked(chId) { return true }
   function testUnlocked(unitId) { return true }
 
@@ -163,9 +168,9 @@ export default function App() {
         onSignOut={signOut}
         onSwitchAcademy={()=>{setAcademy(null);setView('launcher')}}
         userEmail={session.user.email} />}
-      {view==='chapter' && <ChapterReader chId={activeChId} progress={progress} onMark={markSection}
+      {view==='chapter' && <ChapterReader chId={activeChId} progress={progress} accent={accent} onMark={markSection}
         onQuiz={()=>setView('quiz')} onBack={()=>setView('dashboard')} />}
-      {view==='quiz' && <Quiz chId={activeChId} existing={progress.quizScores[activeChId]}
+      {view==='quiz' && <Quiz chId={activeChId} existing={progress.quizScores[activeChId]} accent={accent}
         onDone={s=>{saveQuiz(activeChId,s);setView('dashboard')}} onBack={()=>setView('dashboard')} />}
       {view==='test' && <UnitTest unitId={activeUnitId} existing={progress.testScores[activeUnitId]}
         onDone={s=>{saveTest(activeUnitId,s);setView('dashboard')}} onBack={()=>setView('dashboard')} />}
