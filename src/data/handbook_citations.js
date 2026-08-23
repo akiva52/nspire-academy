@@ -120,9 +120,13 @@ export function exhibitCitation(kind, chapter, num) {
   }
 }
 
+// eCFR nests a section under its part: the path is part-{PART}/section-{PART}.{SECTION},
+// e.g. 24 CFR 5.653 -> /current/title-24/part-5/section-5.653 and
+// 24 CFR 247.4 -> /current/title-24/part-247/section-247.4. A bare
+// /section-5.653 with no part segment is a dead link.
 export function cfrSectionCitation(part, section, label) {
   return {
-    href: `${ECFR}section-${part}.${section}`,
+    href: `${ECFR}part-${part}/section-${part}.${section}`,
     title: `${label} on eCFR — the current text of the regulation. Opens in a new tab.`,
   }
 }
