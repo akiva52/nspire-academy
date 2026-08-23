@@ -4,3 +4,8 @@ button { font-family: inherit; cursor: pointer; }
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: #1e293b; }
 ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+
+/* Handbook / CFR citation badges in lesson bodies (see CitationText.jsx) */
+.hb-cite { transition: background 120ms ease, border-color 120ms ease, color 120ms ease; }
+.hb-cite:hover, .hb-cite:focus-visible { background: rgba(251,146,60,0.20); border-color: rgba(251,146,60,0.55); color: #fed7aa; }
+.hb-cite:focus-visible { outline: 2px solid rgba(251,146,60,0.55); outline-offset: 2px; }
