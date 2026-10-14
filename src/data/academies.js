@@ -1,20 +1,24 @@
 // ── Academy registry ─────────────────────────────────────────────────────────
-// Groups the merged unit list into three selectable academies. Membership is
+// Groups the merged unit list into four selectable academies. Membership is
 // defined by EXCLUSION so it stays correct as content grows:
 //   MOR       = the MOR units
 //   OCCUPANCY = the HUD Occupancy units
+//   RENEWAL   = the Section 8 Renewal Policy units
 //   NSPIRE    = every other unit (foundations, scoring, extras, etc.)
 
 import { ALL_UNITS_FINAL } from './content.js'
 import { MOR_UNITS } from './mor_content.js'
 import { OCCUPANCY_UNITS } from './occupancy_content.js'
+import { RENEWAL_UNITS } from './renewal_content.js'
 
 const morIds = new Set(MOR_UNITS.map(u => u.id))
 const occupancyIds = new Set(OCCUPANCY_UNITS.map(u => u.id))
+const renewalIds = new Set(RENEWAL_UNITS.map(u => u.id))
 
-const nspireUnits = ALL_UNITS_FINAL.filter(u => !morIds.has(u.id) && !occupancyIds.has(u.id))
+const nspireUnits = ALL_UNITS_FINAL.filter(u => !morIds.has(u.id) && !occupancyIds.has(u.id) && !renewalIds.has(u.id))
 const morUnits = ALL_UNITS_FINAL.filter(u => morIds.has(u.id))
 const occupancyUnits = ALL_UNITS_FINAL.filter(u => occupancyIds.has(u.id))
+const renewalUnits = ALL_UNITS_FINAL.filter(u => renewalIds.has(u.id))
 
 export const ACADEMIES = [
   {
@@ -43,6 +47,15 @@ export const ACADEMIES = [
     description: 'Work a HUD tenant file the way a reviewer does — annual income, assets, the five deductions, Total Tenant Payment, verification, EIV, and the file errors that cost owners and families real money.',
     accent: '#fb923c',     // amber
     units: occupancyUnits,
+  },
+  {
+    id: 'renewal',
+    name: 'Section 8 Renewal Academy',
+    short: 'Renewal',
+    tagline: 'HAP contract renewal & rent-setting mastery',
+    description: 'Work a Section 8 HAP contract renewal the way HUD and the Contract Administrator do \u2014 the six renewal options, Mark-Up-To-Market, Recap referral, rent comparability studies, OCAF and budget-based adjustments, opt-outs, and tenant protections.',
+    accent: '#a78bfa',     // violet
+    units: renewalUnits,
   },
 ]
 
